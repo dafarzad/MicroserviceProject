@@ -1,6 +1,7 @@
 using Basket.Api.GrpcServices;
 using Basket.Api.Repositories;
 using Discount.Grpc.Protos;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddGrpcClient<DiscountProtoService
     .DiscountProtoServiceClient>(o => o.Address = new Uri(builder.Configuration["GrpsSettings:DiscountUri"]));
 builder.Services.AddScoped<DiscountGrpcServices>();
@@ -18,6 +21,16 @@ builder.Services.AddScoped<DiscountGrpcServices>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration["CacheSettings:ConnectionString"];
+});
+
+builder.Services.AddMassTransit(config =>
+{
+    config.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("amqp://guest:guest@localhost:5672");
+
+        cfg.ConfigureEndpoints(ctx);
+    });
 });
 
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
