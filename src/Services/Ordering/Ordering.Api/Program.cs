@@ -1,3 +1,6 @@
+using EventBus.Message.Common;
+using MassTransit;
+using Ordering.Api.EventBusConsumer;
 using Ordering.Api.Extensions;
 using Ordering.Application;
 using Ordering.Infrastructure;
@@ -15,6 +18,20 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices();
 var app = builder.Build();
+
+builder.Services.AddMassTransit(config =>
+{
+    config.AddConsumer<BasketCheckoutConsumer>();
+    config.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("amqp://guest:guest@localhost:5672");
+
+        cfg.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, c =>
+        {
+            c.ConfigureConsumer<BasketCheckoutConsumer>(ctx);
+        });
+    });
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
