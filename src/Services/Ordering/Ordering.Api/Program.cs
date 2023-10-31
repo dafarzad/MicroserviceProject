@@ -17,6 +17,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices();
+
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<BasketCheckoutConsumer>();
+
 var app = builder.Build();
 
 builder.Services.AddMassTransit(config =>
